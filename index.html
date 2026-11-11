@@ -155,45 +155,127 @@
     background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 20px rgba(200,75,49,.4);
   }
   
-  .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 30px; }
-  .project-card {
-    position: relative; border-radius: var(--radius); overflow: hidden; background: var(--card-bg);
-    transition: var(--transition); transform-style: preserve-3d; perspective: 1000px;
-    border: 1px solid rgba(244,235,217,.05);
+  /* ==================== TV (电视框架) ==================== */
+  .tv-wrap { display: flex; justify-content: center; }
+  .tv {
+    display: flex; align-items: stretch; position: relative;
+    background: linear-gradient(165deg, #e0b04a, #c08a2e 35%, #9a6d20 75%, #7d5514);
+    border: 1px solid rgba(244,235,217,.35);
+    border-radius: 30px;
+    padding: 30px 24px 40px 34px;
+    box-shadow: 0 40px 90px rgba(0,0,0,.65), inset 0 2px 0 rgba(244,235,217,.35), inset 0 -8px 18px rgba(0,0,0,.45);
   }
-  .project-card .card-inner { transition: transform .1s ease-out; transform-style: preserve-3d; }
-  .project-thumb { aspect-ratio: 16/10; overflow: hidden; position: relative; background: #000; }
-  .project-thumb img, .project-thumb video { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
-  .project-card:hover .project-thumb img { transform: scale(1.05); }
-  
-  /* 视频播放图标遮罩 */
-  .video-indicator {
-    position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,.6);
-    color: #fff; padding: 4px 10px; border-radius: 20px; font-size: .75rem;
-    display: flex; align-items: center; gap: 5px; z-index: 2; backdrop-filter: blur(4px);
+  .tv-leftbar {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 9px; z-index: 0;
+    background: linear-gradient(180deg, #e05a3d, #a02c17);
+    border-radius: 30px 0 0 30px;
+    box-shadow: inset 0 0 6px rgba(0,0,0,.5);
+  }
+  .tv-ribbon {
+    position: absolute; left: 12px; right: 12px; bottom: 10px; height: 9px; z-index: 0;
+    background: linear-gradient(90deg, #a8321d, #e05a3d 50%, #a8321d);
+    border-radius: 5px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.25), inset 0 0 8px rgba(0,0,0,.45);
+  }
+  .tv-screen-frame {
+    position: relative; z-index: 1;
+    flex: 1; min-width: 0; background: #0c0a08; border-radius: 20px; padding: 16px;
+    border: 1px solid rgba(230,185,92,.55);
+    box-shadow: inset 0 0 34px rgba(0,0,0,.95);
+  }
+  .tv-screen { position: relative; aspect-ratio: 16/10; border-radius: 12px; overflow: hidden; background: #000; }
+  .tv-grid {
+    position: absolute; inset: 0; z-index: 0;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 10px; padding: 10px;
+  }
+  .tv-cell {
+    position: relative; overflow: hidden; border-radius: 8px; background: #111;
+    border: 1px solid rgba(244,235,217,.08); transition: var(--transition);
+  }
+  .tv-cell img, .tv-cell video { width: 100%; height: 100%; object-fit: cover; }
+  .cell-label {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 10px 8px;
+    font-size: .72rem; letter-spacing: 1px;
+    background: linear-gradient(to top, rgba(0,0,0,.85), transparent);
+  }
+  .tv-cell.active {
+    border-color: var(--accent2); z-index: 1;
+    box-shadow: 0 0 0 2px var(--accent), 0 0 22px rgba(230,185,92,.35);
+    transform: scale(1.02);
+  }
+  .tv-static {
+    position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity .4s;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+    filter: grayscale(1) contrast(1.1) brightness(.9);
+  }
+  .tv-scanlines {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+  }
+  .tv-nosignal {
+    position: absolute; inset: 0; z-index: 3; display: none; align-items: center; justify-content: center;
+    font-size: 1rem; letter-spacing: 8px; color: var(--text-dim);
+  }
+  .tv-grid, .tv-osd, .tv-view { transition: opacity .4s, visibility .4s; }
+  .tv.off .tv-nosignal { display: flex; }
+  .tv.off .tv-static { opacity: .5; }
+  .tv.off .tv-grid, .tv.off .tv-osd, .tv.off .tv-view { opacity: 0; visibility: hidden; }
+  .tv.off .tv-power { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 16px rgba(200,75,49,.5); }
+
+  /* 换台闪屏 */
+  .tv-screen.switching { animation: tvSwitch .35s steps(4) both; }
+  @keyframes tvSwitch {
+    0%   { filter: brightness(2.2) contrast(.5); transform: scale(1.03); }
+    45%  { filter: brightness(.15); }
+    70%  { filter: brightness(3) saturate(0); }
+    100% { filter: none; transform: none; }
   }
 
-  .project-overlay {
-    position: absolute; inset: 0; background: linear-gradient(to top, rgba(22,20,18,.95) 0%, transparent 60%);
-    opacity: 0; transition: opacity .4s; display: flex; align-items: flex-end; padding: 30px;
+  /* 屏幕 OSD 信息条 */
+  .tv-osd {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 4;
+    padding: 46px 22px 16px; display: flex; gap: 16px; align-items: flex-end; justify-content: space-between;
+    background: linear-gradient(to top, rgba(10,9,8,.92) 30%, transparent);
   }
-  .project-card:hover .project-overlay { opacity: 1; }
-  .overlay-actions { display: flex; gap: 12px; }
+  .tv-osd .ch { font-size: .78rem; letter-spacing: 3px; color: var(--accent2); }
+  .tv-osd h3 { font-size: 1.25rem; font-weight: 700; }
+  .tv-osd p { font-size: .82rem; color: var(--text-dim); max-width: 520px; font-family: system-ui, sans-serif; }
+  .tv-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-content: flex-end; }
+  .project-tag {
+    padding: 4px 12px; border-radius: 50px; font-size: .75rem;
+    background: rgba(230,185,92,.1); color: var(--accent2); border: 1px solid rgba(230,185,92,.2);
+  }
+  .tv-view { position: absolute; top: 14px; right: 14px; z-index: 5; }
   .overlay-btn {
     width: 48px; height: 48px; border-radius: 50%; background: rgba(244,235,217,.15); backdrop-filter: blur(10px);
     border: 1px solid rgba(244,235,217,.2); color: #fff; display: flex; align-items: center; justify-content: center;
     font-size: 1.2rem; transition: var(--transition);
   }
   .overlay-btn:hover { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
-  
-  .project-info { padding: 24px; }
-  .project-tags { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .project-tag {
-    padding: 4px 12px; border-radius: 50px; font-size: .75rem;
-    background: rgba(230,185,92,.1); color: var(--accent2); border: 1px solid rgba(230,185,92,.2);
+
+  /* 侧面按键 */
+  .tv-panel {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 14px; padding-left: 22px;
   }
-  .project-info h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
-  .project-info p { font-size: .9rem; color: var(--text-dim); font-family: system-ui, sans-serif; }
+  .tv-btn {
+    width: 54px; height: 54px; border-radius: 12px;
+    background: linear-gradient(160deg, #2a1d10, #120c06);
+    border: 1px solid rgba(230,185,92,.55); color: var(--accent2);
+    font-size: 1rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    box-shadow: 0 5px 12px rgba(0,0,0,.55), inset 0 1px 0 rgba(244,235,217,.15);
+    transition: var(--transition);
+  }
+  .tv-btn small { font-size: .55rem; font-weight: 400; color: var(--text-dim); }
+  .tv-btn:hover { transform: translateX(-3px); border-color: var(--accent2); color: #fff; }
+  .tv-btn.active {
+    background: linear-gradient(160deg, var(--accent), #7c2a19); color: #fff; border-color: var(--accent2);
+    box-shadow: 0 0 20px rgba(200,75,49,.55), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .tv-btn.active small { color: rgba(255,255,255,.75); }
+  .tv-power { width: 46px; height: 46px; border-radius: 50%; font-size: .9rem; }
 
   /* ==================== Lightbox (全屏查看) ==================== */
   .lightbox {
@@ -262,7 +344,9 @@
     .menu-toggle { display: flex; }
     section { padding: 80px 24px; }
     .hero { padding: 100px 24px 60px; }
-    .projects-grid { grid-template-columns: 1fr; }
+    .tv { flex-direction: column; padding: 22px; }
+    .tv-panel { flex-direction: row; padding-left: 0; padding-top: 18px; flex-wrap: wrap; }
+    .tv-btn:hover { transform: none; }
     .cursor-dot, .cursor-ring { display: none; }
     body { cursor: auto; }
     a, button { cursor: pointer; }
@@ -329,8 +413,32 @@
     <button class="filter-btn interactive" data-filter="motion">动态视觉</button>
   </div>
 
-  <div class="projects-grid" id="projectsGrid">
-    <!-- 卡片由 JS 自动生成 -->
+  <div class="tv-wrap reveal">
+    <div class="tv">
+      <div class="tv-leftbar"></div>
+      <div class="tv-ribbon"></div>
+      <div class="tv-screen-frame">
+        <div class="tv-screen" id="tvScreen">
+          <div class="tv-grid" id="tvGrid"></div>
+          <div class="tv-static"></div>
+          <div class="tv-scanlines"></div>
+          <div class="tv-nosignal"><span>无信号 · NO SIGNAL</span></div>
+          <div class="tv-osd">
+            <div>
+              <span class="ch" id="tvCh">CH 01</span>
+              <h3 id="tvTitle"></h3>
+              <p id="tvDesc"></p>
+            </div>
+            <div class="tv-tags" id="tvTags"></div>
+          </div>
+          <button class="overlay-btn tv-view interactive" id="tvView" title="查看详情">🔍</button>
+        </div>
+      </div>
+      <div class="tv-panel" id="tvPanel">
+        <button class="tv-btn tv-power interactive" id="tvPower" title="电源">⏻</button>
+        <!-- 频道按键由 JS 自动生成 -->
+      </div>
+    </div>
   </div>
 </section>
 
@@ -462,86 +570,77 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-// ==================== RENDER PROJECTS ====================
-const grid = document.getElementById('projectsGrid');
+// ==================== TV RENDER (电视频道) ====================
+const tv = document.querySelector('.tv');
+const tvScreen = document.getElementById('tvScreen');
+const tvGrid = document.getElementById('tvGrid');
+const tvPanel = document.getElementById('tvPanel');
+const tvView = document.getElementById('tvView');
+let tvChannels = projects;
 
 function renderProjects(filter = 'all') {
-  grid.innerHTML = '';
-  const filtered = filter === 'all' ? projects : projects.filter(p => p.category === filter);
+  tvChannels = filter === 'all' ? projects : projects.filter(p => p.category === filter);
+  tvPanel.querySelectorAll('.tv-btn:not(.tv-power)').forEach(b => b.remove());
+  tvChannels.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'tv-btn interactive';
+    b.innerHTML = `${i + 1}<small>${p.category === 'motion' ? '动态' : p.category.toUpperCase()}</small>`;
+    b.title = p.title;
+    b.addEventListener('click', () => setChannel(i));
+    b.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    b.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+    tvPanel.appendChild(b);
+  });
 
-  filtered.forEach((p, i) => {
-    const card = document.createElement('div');
-    card.className = 'project-card reveal interactive';
-    card.dataset.index = projects.indexOf(p);
-    
-    // 判断是视频还是图片
-    let mediaHTML = '';
-    let indicatorHTML = '';
+  // 作品集网格放入屏幕
+  tvGrid.innerHTML = '';
+  tvChannels.forEach((p, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'tv-cell interactive';
+    let el;
     if (p.type === 'video') {
-      mediaHTML = `<video src="${p.src}" muted loop playsinline preload="metadata" ${p.poster ? `poster="${p.poster}"` : ''}></video>`;
-      indicatorHTML = `<div class="video-indicator">▶ Video</div>`;
+      el = document.createElement('video');
+      el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true;
+      if (p.poster) el.poster = p.poster;
+      el.src = p.src;
+      el.play().catch(() => {});
     } else {
-      mediaHTML = `<img src="${p.src}" alt="${p.title}" loading="lazy">`;
+      el = document.createElement('img');
+      el.src = p.src; el.alt = p.title;
     }
-
-    card.innerHTML = `
-      <div class="card-inner">
-        <div class="project-thumb">
-          ${indicatorHTML}
-          ${mediaHTML}
-          <div class="project-overlay">
-            <div class="overlay-actions">
-              <button class="overlay-btn view-btn interactive" title="查看详情">🔍</button>
-            </div>
-          </div>
-        </div>
-        <div class="project-info">
-          <div class="project-tags">
-            ${p.tags.map(t => `<span class="project-tag">${t}</span>`).join('')}
-          </div>
-          <h3>${p.title}</h3>
-          <p>${p.desc}</p>
-        </div>
-      </div>
-    `;
-    grid.appendChild(card);
-
-    // 视频悬停自动播放逻辑
-    if (p.type === 'video') {
-      const videoEl = card.querySelector('video');
-      card.addEventListener('mouseenter', () => { try { videoEl.play(); } catch(e){} });
-      card.addEventListener('mouseleave', () => { videoEl.pause(); videoEl.currentTime = 0; });
-    }
-
-    // 3D Tilt Effect (卡片倾斜)
-    card.addEventListener('mousemove', e => {
-      const inner = card.querySelector('.card-inner');
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left; const y = e.clientY - rect.top;
-      const rotateX = ((y - rect.height/2) / (rect.height/2)) * -5;
-      const rotateY = ((x - rect.width/2) / (rect.width/2)) * 5;
-      inner.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02,1.02,1.02)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.querySelector('.card-inner').style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)';
-    });
+    cell.appendChild(el);
+    const label = document.createElement('div');
+    label.className = 'cell-label';
+    label.textContent = p.title;
+    cell.appendChild(label);
+    cell.addEventListener('click', () => setChannel(i));
+    cell.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    cell.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+    tvGrid.appendChild(cell);
   });
-
-  // 重新绑定观察器和点击事件
-  document.querySelectorAll('.project-card.reveal').forEach(el => revealObserver.observe(el));
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      openLightbox(parseInt(btn.closest('.project-card').dataset.index));
-    });
-  });
-  
-  // 重新绑定光标交互
-  document.querySelectorAll('.interactive').forEach(el => {
-    el.addEventListener('mouseenter', () => ring.classList.add('hover'));
-    el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
-  });
+  setChannel(0);
 }
+
+function setChannel(i) {
+  if (!tvChannels.length) return;
+  const p = tvChannels[i];
+  tvPanel.querySelectorAll('.tv-btn:not(.tv-power)').forEach((b, bi) => b.classList.toggle('active', bi === i));
+  tvGrid.querySelectorAll('.tv-cell').forEach((c, ci) => c.classList.toggle('active', ci === i));
+
+  document.getElementById('tvCh').textContent = `CH 0${i + 1}`;
+  document.getElementById('tvTitle').textContent = p.title;
+  document.getElementById('tvDesc').textContent = p.desc;
+  document.getElementById('tvTags').innerHTML = p.tags.map(t => `<span class="project-tag">${t}</span>`).join('');
+  tvView.dataset.index = projects.indexOf(p);
+
+  // 换台闪屏
+  tvScreen.classList.remove('switching');
+  void tvScreen.offsetWidth;
+  tvScreen.classList.add('switching');
+}
+
+document.getElementById('tvPower').addEventListener('click', () => tv.classList.toggle('off'));
+tvView.addEventListener('click', () => openLightbox(parseInt(tvView.dataset.index)));
 
 renderProjects();
 
