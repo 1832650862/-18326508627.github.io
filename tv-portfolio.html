@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国潮电视 · 作品集</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+    background: #1a120c radial-gradient(ellipse at 50% -10%, rgba(200,75,49,.18), transparent 55%);
+    color: #f4ebd9; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 16px;
+  }
+  .page-title { text-align: center; margin-bottom: 28px; }
+  .page-title .label { font-size: .8rem; letter-spacing: 6px; color: #e6b95c; }
+  .page-title h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: 4px; margin-top: 6px; }
+
+  /* ============ 电视机 ============ */
+  .tv {
+    display: flex; position: relative; max-width: 1250px; width: 100%;
+    background: linear-gradient(165deg, #e0b04a, #c08a2e 35%, #9a6d20 75%, #7d5514);
+    border: 1px solid rgba(244,235,217,.4);
+    border-radius: 30px;
+    padding: 26px 22px 42px 32px;
+    box-shadow: 0 40px 90px rgba(0,0,0,.7), inset 0 2px 0 rgba(244,235,217,.35), inset 0 -8px 18px rgba(0,0,0,.45);
+  }
+  .tv-leftbar {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 9px;
+    background: linear-gradient(180deg, #e05a3d, #a02c17);
+    border-radius: 30px 0 0 30px;
+    box-shadow: inset 0 0 6px rgba(0,0,0,.5);
+  }
+  .tv-ribbon {
+    position: absolute; left: 12px; right: 12px; bottom: 10px; height: 9px;
+    background: linear-gradient(90deg, #a8321d, #e05a3d 50%, #a8321d);
+    border-radius: 5px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.25), inset 0 0 8px rgba(0,0,0,.45);
+  }
+  .screen-frame {
+    position: relative; z-index: 1; flex: 1; min-width: 0;
+    background: #0c0a08; border-radius: 20px; padding: 14px;
+    border: 1px solid rgba(230,185,92,.55);
+    box-shadow: inset 0 0 34px rgba(0,0,0,.95);
+  }
+  .screen {
+    position: relative; background: #000; border-radius: 12px; overflow: hidden;
+  }
+  .screen::before { content: ''; display: block; padding-top: 62.5%; } /* 16:10 老浏览器兼容 */
+
+  .stage { position: absolute; inset: 0; background: #000; }
+  .stage img, .stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  .noise {
+    position: absolute; inset: 0; opacity: 0; transition: opacity .4s;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+    filter: grayscale(1) contrast(1.1) brightness(.9);
+  }
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+  }
+  .nosignal {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    font-size: 1rem; letter-spacing: 8px; color: #a39b8b;
+  }
+  .osd {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px 14px;
+    display: flex; gap: 14px; align-items: flex-end; justify-content: space-between;
+    background: linear-gradient(to top, rgba(10,9,8,.92) 30%, transparent);
+    transition: opacity .4s;
+  }
+  .osd .ch { font-size: .78rem; letter-spacing: 3px; color: #e6b95c; }
+  .osd h3 { font-size: 1.2rem; }
+  .osd p { font-size: .8rem; color: #a39b8b; max-width: 480px; font-family: system-ui, sans-serif; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .tag {
+    padding: 4px 12px; border-radius: 50px; font-size: .72rem;
+    background: rgba(230,185,92,.12); color: #e6b95c; border: 1px solid rgba(230,185,92,.25);
+  }
+  .view-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 5;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(244,235,217,.15); border: 1px solid rgba(244,235,217,.25); color: #fff;
+    font-size: 1.1rem; cursor: pointer; transition: all .3s;
+  }
+  .view-btn:hover { background: #c84b31; border-color: #c84b31; transform: scale(1.1); }
+
+  /* 关机 */
+  .tv.off .stage, .tv.off .osd, .tv.off .view-btn { opacity: 0; visibility: hidden; }
+  .tv.off .noise { opacity: .5; }
+  .tv.off .nosignal { display: flex; }
+  .tv.off .power { color: #e05a3d; border-color: #e05a3d; box-shadow: 0 0 16px rgba(200,75,49,.5); }
+
+  /* 换台闪屏 */
+  .screen.switching { animation: flash .35s steps(4) both; }
+  @keyframes flash {
+    0%   { filter: brightness(2.2) contrast(.5); }
+    45%  { filter: brightness(.15); }
+    70%  { filter: brightness(3) saturate(0); }
+    100% { filter: none; }
+  }
+
+  /* ============ 侧面按键 ============ */
+  .panel {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 14px; padding-left: 20px;
+  }
+  .key {
+    width: 54px; height: 54px; border-radius: 12px; cursor: pointer;
+    background: linear-gradient(160deg, #2a1d10, #120c06);
+    border: 1px solid rgba(230,185,92,.55); color: #e6b95c;
+    font: 700 1rem 'Noto Serif SC', 'SimSun', serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    box-shadow: 0 5px 12px rgba(0,0,0,.55), inset 0 1px 0 rgba(244,235,217,.15);
+    transition: all .35s;
+  }
+  .key small { font: 400 .55rem system-ui, sans-serif; color: #a39b8b; }
+  .key:hover { border-color: #e6b95c; color: #fff; }
+  .key.sel {
+    background: linear-gradient(160deg, #c84b31, #7c2a19); color: #fff; border-color: #e6b95c;
+    box-shadow: 0 0 20px rgba(200,75,49,.55), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .key.sel small { color: rgba(255,255,255,.75); }
+  .power { width: 46px; height: 46px; border-radius: 50%; font-size: .9rem; }
+
+  /* ============ 放大查看 ============ */
+  .bigview {
+    position: fixed; inset: 0; z-index: 100; background: rgba(10,9,8,.95);
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 18px;
+    cursor: zoom-out;
+  }
+  .bigview.show { display: flex; }
+  .bigview img, .bigview video { max-width: 92vw; max-height: 80vh; border-radius: 12px; }
+  .bigview .t { font-size: 1.2rem; }
+  .bigview .hint { font-size: .75rem; color: #a39b8b; letter-spacing: 2px; }
+
+  /* ============ 小屏 ============ */
+  @media (max-width: 760px) {
+    .tv { flex-direction: column; padding: 20px 16px 38px 24px; }
+    .panel { flex-direction: row; padding-left: 0; padding-top: 16px; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <div class="label">GUOCHAO TV</div>
+  <h1>作品频道</h1>
+</div>
+
+<div class="tv" id="tv">
+  <div class="tv-leftbar"></div>
+  <div class="tv-ribbon"></div>
+
+  <div class="screen-frame">
+    <div class="screen" id="screen">
+      <div class="stage" id="stage"></div>
+      <div class="noise"></div>
+      <div class="scanlines"></div>
+      <div class="nosignal"><span>无信号 · NO SIGNAL</span></div>
+      <div class="osd">
+        <div>
+          <span class="ch" id="ch">CH 01</span>
+          <h3 id="title"></h3>
+          <p id="desc"></p>
+        </div>
+        <div class="tags" id="tags"></div>
+      </div>
+      <button class="view-btn" id="viewBtn" title="放大查看">🔍</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel">
+    <button class="key power" id="power" title="电源">⏻</button>
+    <!-- 频道键由 JS 生成 -->
+  </div>
+</div>
+
+<div class="bigview" id="bigview">
+  <div class="t" id="bigTitle"></div>
+  <img id="bigMedia" alt="">
+  <video id="bigVideo" controls loop muted></video>
+  <div class="hint">点击任意处关闭</div>
+</div>
+
+<script>
+var works = [
+  { type: 'video', title: '皮影戏的千年演变', cat: '动态',
+    desc: '结合非遗文化与现代 3D 动画技术，科普皮影戏从西汉到明清的历史演变。',
+    tags: ['3D动画', '非遗文化', 'AI辅助'],
+    src: './video/shadow-puppet.mp4', poster: './images/opera-girl.jpg' },
+  { type: 'image', title: '幻羽灵蝶 · 角色三视图', cat: '3D',
+    desc: '原创 3D 盲盒风格角色设计，融合马卡龙色系与传统服饰剪裁。',
+    tags: ['3D建模', '角色设计', 'Blender/ZBrush'],
+    src: './images/2.jpg' },
+  { type: 'image', title: '梨园春梦 · 戏曲少女', cat: '3D',
+    desc: '提取传统京剧旦角元素进行的 Q 版 3D 角色重构，注重头饰与纹样细节。',
+    tags: ['国潮', 'Q版角色', '材质渲染'],
+    src: './images/opera-girl.jpg' },
+  { type: 'image', title: '九尾狐仙 · 角色原画', cat: '2D',
+    desc: '日系二次元风格角色设定图，飘逸丝带与狐耳元素塑造神秘狐妖形象。',
+    tags: ['2D原画', '角色设定', '厚涂'],
+    src: './images/fox-girl.png' }
+];
+
+var tv = document.getElementById('tv');
+var screen = document.getElementById('screen');
+var stage = document.getElementById('stage');
+var panel = document.getElementById('panel');
+var cur = 0;
+
+// 生成侧边频道键
+for (var i = 0; i < works.length; i++) {
+  (function (i) {
+    var key = document.createElement('button');
+    key.className = 'key';
+    key.innerHTML = (i + 1) + '<small>' + works[i].cat + '</small>';
+    key.title = works[i].title;
+    key.onclick = function () { select(i); };
+    panel.appendChild(key);
+  })(i);
+}
+
+function select(i) {
+  cur = i;
+  var keys = panel.querySelectorAll('.key:not(.power)');
+  for (var k = 0; k < keys.length; k++) keys[k].classList.toggle('sel', k === i);
+
+  // 屏幕只显示被点到的作品
+  stage.innerHTML = '';
+  var w = works[i];
+  if (w.type === 'video') {
+    var v = document.createElement('video');
+    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+    if (w.poster) v.poster = w.poster;
+    v.src = w.src;
+    v.play().catch(function () {});
+    stage.appendChild(v);
+  } else {
+    var im = document.createElement('img');
+    im.src = w.src; im.alt = w.title;
+    stage.appendChild(im);
+  }
+
+  document.getElementById('ch').textContent = 'CH 0' + (i + 1);
+  document.getElementById('title').textContent = w.title;
+  document.getElementById('desc').textContent = w.desc;
+  var tags = '';
+  for (var t = 0; t < w.tags.length; t++) tags += '<span class="tag">' + w.tags[t] + '</span>';
+  document.getElementById('tags').innerHTML = tags;
+  // 换台闪屏
+  screen.classList.remove('switching');
+  void screen.offsetWidth;
+  screen.classList.add('switching');
+}
+
+// 电源键
+document.getElementById('power').onclick = function () { tv.classList.toggle('off'); };
+
+// 放大查看
+var bigview = document.getElementById('bigview');
+var bigMedia = document.getElementById('bigMedia');
+var bigVideo = document.getElementById('bigVideo');
+function showBig() {
+  var w = works[cur];
+  document.getElementById('bigTitle').textContent = w.title;
+  if (w.type === 'video') {
+    bigMedia.style.display = 'none';
+    bigVideo.style.display = 'block';
+    bigVideo.src = w.src;
+    bigVideo.play().catch(function () {});
+  } else {
+    bigVideo.style.display = 'none'; bigVideo.pause();
+    bigMedia.style.display = 'block';
+    bigMedia.src = w.src;
+  }
+  bigview.classList.add('show');
+}
+document.getElementById('viewBtn').onclick = showBig;
+bigview.onclick = function () {
+  bigview.classList.remove('show');
+  bigVideo.pause();
+};
+
+select(0);
+</script>
+</body>
+</html>

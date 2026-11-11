@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国潮 · 作品频道</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'KaiTi', 'STKaiti', 'Noto Serif SC', 'SimSun', serif;
+    background: #6d1616 radial-gradient(ellipse at 50% -10%, rgba(230,185,92,.25), transparent 55%);
+    color: #f4ebd9; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 16px;
+  }
+  .page-title { text-align: center; margin-bottom: 26px; }
+  .page-title .label { font-size: .8rem; letter-spacing: 8px; color: #e6b95c; }
+  .page-title h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: 8px; margin-top: 6px; color: #f7e7c3; }
+
+  /* ============ 电视机 ============ */
+  .tv {
+    display: flex; position: relative; max-width: 1250px; width: 100%;
+    background: linear-gradient(165deg, #e8bc5e, #c08a2e 35%, #8c6420 75%, #6f4c14);
+    border: 2px solid #f0d998;
+    border-radius: 34px;
+    padding: 28px 24px 44px 34px;
+    box-shadow: 0 40px 90px rgba(0,0,0,.75), inset 0 2px 0 rgba(255,240,200,.5), inset 0 -10px 20px rgba(70,40,5,.5);
+  }
+  /* 宫墙红侧板 */
+  .tv::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 12px;
+    background: linear-gradient(180deg, #b03030, #7a1616);
+    border-radius: 34px 0 0 34px;
+    box-shadow: inset 0 0 6px rgba(0,0,0,.5);
+  }
+  /* 底部红绸带 */
+  .tv::after {
+    content: ''; position: absolute; left: 20px; right: 20px; bottom: 12px; height: 12px;
+    background: linear-gradient(90deg, #8f1d1d, #c0392b 30%, #e05a3d 50%, #c0392b 70%, #8f1d1d);
+    border-radius: 6px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.25), inset 0 0 10px rgba(60,10,5,.6);
+  }
+
+  .screen-frame {
+    position: relative; z-index: 2; flex: 1; min-width: 0;
+    background: #2a0d0d; border-radius: 24px; padding: 16px;
+    border: 2px solid #e6b95c;
+    box-shadow: inset 0 0 30px rgba(0,0,0,.9), 0 0 0 3px rgba(122,22,22,.6);
+  }
+  .screen {
+    position: relative; background: #000; border-radius: 16px; overflow: hidden;
+  }
+  .screen::before { content: ''; display: block; padding-top: 62.5%; } /* 16:10 兼容 */
+
+  .stage { position: absolute; inset: 0; background: #000; }
+  .stage img, .stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  .noise {
+    position: absolute; inset: 0; opacity: 0; transition: opacity .4s;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+    filter: grayscale(1) contrast(1.1) brightness(.9);
+  }
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+  }
+  .nosignal {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    font-size: 1rem; letter-spacing: 8px; color: #b89a6a;
+  }
+  .osd {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px 14px;
+    display: flex; gap: 14px; align-items: flex-end; justify-content: space-between;
+    background: linear-gradient(to top, rgba(20,8,4,.92) 30%, transparent);
+    transition: opacity .4s;
+  }
+  .osd .ch { font-size: .78rem; letter-spacing: 3px; color: #e6b95c; }
+  .osd h3 { font-size: 1.2rem; color: #f7e7c3; }
+  .osd p { font-size: .8rem; color: #c9b896; max-width: 480px; font-family: system-ui, sans-serif; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .tag {
+    padding: 4px 12px; border-radius: 50px; font-size: .72rem;
+    background: rgba(230,185,92,.12); color: #e6b95c; border: 1px solid rgba(230,185,92,.3);
+  }
+  .view-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 5;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(230,185,92,.18); border: 1px solid rgba(230,185,92,.4); color: #f7e7c3;
+    font-size: 1.1rem; cursor: pointer; transition: all .3s;
+  }
+  .view-btn:hover { background: #c0392b; border-color: #e6b95c; transform: scale(1.1); }
+
+  /* 关机 */
+  .tv.off .stage, .tv.off .osd, .tv.off .view-btn { opacity: 0; visibility: hidden; }
+  .tv.off .noise { opacity: .5; }
+  .tv.off .nosignal { display: flex; }
+  .tv.off .seal { box-shadow: 0 0 16px rgba(200,60,45,.8); background: radial-gradient(circle at 35% 30%, #d94a3a, #8f1d1d); color: #fff; }
+
+  /* 换台闪屏 */
+  .screen.switching { animation: flash .35s steps(4) both; }
+  @keyframes flash {
+    0%   { filter: brightness(2.2) contrast(.5); }
+    45%  { filter: brightness(.15); }
+    70%  { filter: brightness(3) saturate(0); }
+    100% { filter: none; }
+  }
+
+  /* ============ 侧边铜钱按键 ============ */
+  .panel {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 16px; padding-left: 22px;
+  }
+  .coin {
+    position: relative; width: 62px; height: 62px; border-radius: 50%; cursor: pointer;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 15px, rgba(120,80,15,.4) 15.5px, transparent 17.5px),
+      radial-gradient(circle at 32% 28%, #fff3cf 0%, #f0d488 20%, #d9ab4a 48%, #b8862f 72%, #8f6a1c 100%);
+    border: none;
+    color: #5a3a08;
+    display: flex; align-items: center; justify-content: flex-end; padding-bottom: 8px;
+    box-shadow:
+      0 0 0 1px #8a6a1e,
+      0 0 0 3px rgba(240,216,152,.5),
+      0 7px 16px rgba(40,20,0,.6),
+      inset 0 2px 2px rgba(255,250,225,.95),
+      inset 0 -5px 10px rgba(110,70,10,.6),
+      inset 0 0 24px rgba(150,100,20,.4);
+    transition: all .3s;
+    font-family: 'KaiTi', 'STKaiti', serif;
+  }
+  /* 铜钱方孔(蚀刻) */
+  .coin::after {
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 24px; height: 24px; border-radius: 3px;
+    background: radial-gradient(circle at 40% 35%, #3a2508, #150d02);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.95), 0 1px 0 rgba(255,244,210,.65);
+  }
+  .coin b {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 1.15rem; font-weight: 700; z-index: 1;
+    text-shadow: 0 1px 0 rgba(255,248,220,.75), 0 -1px 0 rgba(90,60,10,.55);
+  }
+  .coin small {
+    position: relative; z-index: 1;
+    font: 400 .52rem system-ui, sans-serif; letter-spacing: 3px; color: #6b4f12;
+    text-shadow: 0 1px 0 rgba(255,248,220,.5);
+  }
+  .coin:hover {
+    transform: translateY(-3px) rotate(-6deg);
+    box-shadow:
+      0 0 0 1px #9a7a24,
+      0 0 0 3px rgba(240,216,152,.7),
+      0 10px 22px rgba(40,20,0,.65),
+      0 0 18px rgba(230,185,92,.5),
+      inset 0 2px 2px rgba(255,250,225,.95),
+      inset 0 -5px 10px rgba(110,70,10,.6),
+      inset 0 0 24px rgba(150,100,20,.4);
+  }
+  .coin:active { transform: translateY(1px); }
+  .coin.sel {
+    background:
+      radial-gradient(circle at 50% 50%, transparent 15px, rgba(140,90,15,.5) 15.5px, transparent 17.5px),
+      radial-gradient(circle at 32% 28%, #fff7d8 0%, #ffe9b0 22%, #e6b95c 50%, #c08a2e 75%, #96701f 100%);
+    color: #7a2a12;
+    box-shadow:
+      0 0 0 2px #f5dc9a,
+      0 0 0 4px rgba(200,57,43,.55),
+      0 0 26px rgba(230,185,92,.85),
+      0 8px 18px rgba(40,20,0,.6),
+      inset 0 2px 2px rgba(255,252,235,.95),
+      inset 0 -5px 10px rgba(120,80,10,.55),
+      inset 0 0 26px rgba(200,140,30,.5);
+    transform: scale(1.06);
+  }
+  .coin.sel::after { background: radial-gradient(circle at 40% 35%, #4a2f0a, #1c1203); }
+  .seal {
+    width: 46px; height: 46px; padding-bottom: 0; justify-content: center;
+    background: radial-gradient(circle at 35% 30%, #d94a3a, #a01f16 60%, #6d120c);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px #8a1d15, 0 0 0 3px rgba(230,185,92,.35), 0 5px 12px rgba(40,10,5,.6), inset 0 2px 2px rgba(255,180,160,.5), inset 0 -4px 8px rgba(60,5,0,.7);
+    color: #ffe9b0; font-size: .9rem;
+    text-shadow: 0 1px 2px rgba(60,5,0,.8);
+  }
+  .seal::after { display: none; }
+
+  /* ============ 放大查看 ============ */
+  .bigview {
+    position: fixed; inset: 0; z-index: 100; background: rgba(25,8,4,.95);
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 18px;
+    cursor: zoom-out;
+  }
+  .bigview.show { display: flex; }
+  .bigview img, .bigview video { max-width: 92vw; max-height: 80vh; border-radius: 12px; }
+  .bigview .t { font-size: 1.2rem; color: #f7e7c3; }
+  .bigview .hint { font-size: .75rem; color: #c9b896; letter-spacing: 2px; }
+
+  /* ============ 小屏 ============ */
+  @media (max-width: 760px) {
+    .tv { flex-direction: column; padding: 20px 16px 40px 22px; }
+    .panel { flex-direction: row; padding: 16px 0 0; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <div class="label">东方美学 · 国潮</div>
+  <h1>作品频道</h1>
+</div>
+
+<div class="tv" id="tv">
+  <div class="screen-frame">
+    <div class="screen" id="screen">
+      <div class="stage" id="stage"></div>
+      <div class="noise"></div>
+      <div class="scanlines"></div>
+      <div class="nosignal"><span>无信号 · NO SIGNAL</span></div>
+      <div class="osd">
+        <div>
+          <span class="ch" id="ch">CH 01</span>
+          <h3 id="title"></h3>
+          <p id="desc"></p>
+        </div>
+        <div class="tags" id="tags"></div>
+      </div>
+      <button class="view-btn" id="viewBtn" title="放大查看">🔍</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel">
+    <button class="coin seal" id="power" title="电源">⏻</button>
+    <!-- 铜钱频道键由 JS 生成 -->
+  </div>
+</div>
+
+<div class="bigview" id="bigview">
+  <div class="t" id="bigTitle"></div>
+  <img id="bigMedia" alt="">
+  <video id="bigVideo" controls loop muted></video>
+  <div class="hint">点击任意处关闭</div>
+</div>
+
+<script>
+var works = [
+  { type: 'video', title: '皮影戏的千年演变', cat: '动态',
+    desc: '结合非遗文化与现代 3D 动画技术，科普皮影戏从西汉到明清的历史演变。',
+    tags: ['3D动画', '非遗文化', 'AI辅助'],
+    src: './video/shadow-puppet.mp4', poster: './images/opera-girl.jpg' },
+  { type: 'image', title: '幻羽灵蝶 · 角色三视图', cat: '3D',
+    desc: '原创 3D 盲盒风格角色设计，融合马卡龙色系与传统服饰剪裁。',
+    tags: ['3D建模', '角色设计', 'Blender/ZBrush'],
+    src: './images/2.jpg' },
+  { type: 'image', title: '梨园春梦 · 戏曲少女', cat: '3D',
+    desc: '提取传统京剧旦角元素进行的 Q 版 3D 角色重构，注重头饰与纹样细节。',
+    tags: ['国潮', 'Q版角色', '材质渲染'],
+    src: './images/opera-girl.jpg' },
+  { type: 'image', title: '九尾狐仙 · 角色原画', cat: '2D',
+    desc: '日系二次元风格角色设定图，飘逸丝带与狐耳元素塑造神秘狐妖形象。',
+    tags: ['2D原画', '角色设定', '厚涂'],
+    src: './images/fox-girl.png' }
+];
+
+var tv = document.getElementById('tv');
+var screen = document.getElementById('screen');
+var stage = document.getElementById('stage');
+var panel = document.getElementById('panel');
+var cur = 0;
+
+// 生成侧边铜钱频道键
+for (var i = 0; i < works.length; i++) {
+  (function (i) {
+    var key = document.createElement('button');
+    key.className = 'coin';
+    key.innerHTML = '<b>' + (i + 1) + '</b><small>' + works[i].cat + '</small>';
+    key.title = works[i].title;
+    key.onclick = function () { select(i); };
+    panel.appendChild(key);
+  })(i);
+}
+
+function select(i) {
+  cur = i;
+  var keys = panel.querySelectorAll('.coin:not(.seal)');
+  for (var k = 0; k < keys.length; k++) keys[k].classList.toggle('sel', k === i);
+
+  // 屏幕只显示被点到的作品
+  stage.innerHTML = '';
+  var w = works[i];
+  if (w.type === 'video') {
+    var v = document.createElement('video');
+    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+    if (w.poster) v.poster = w.poster;
+    v.src = w.src;
+    v.play().catch(function () {});
+    stage.appendChild(v);
+  } else {
+    var im = document.createElement('img');
+    im.src = w.src; im.alt = w.title;
+    stage.appendChild(im);
+  }
+
+  document.getElementById('ch').textContent = 'CH 0' + (i + 1);
+  document.getElementById('title').textContent = w.title;
+  document.getElementById('desc').textContent = w.desc;
+  var tags = '';
+  for (var t = 0; t < w.tags.length; t++) tags += '<span class="tag">' + w.tags[t] + '</span>';
+  document.getElementById('tags').innerHTML = tags;
+  // 换台闪屏
+  screen.classList.remove('switching');
+  void screen.offsetWidth;
+  screen.classList.add('switching');
+}
+
+// 电源键
+document.getElementById('power').onclick = function () { tv.classList.toggle('off'); };
+
+// 放大查看
+var bigview = document.getElementById('bigview');
+var bigMedia = document.getElementById('bigMedia');
+var bigVideo = document.getElementById('bigVideo');
+function showBig() {
+  var w = works[cur];
+  document.getElementById('bigTitle').textContent = w.title;
+  if (w.type === 'video') {
+    bigMedia.style.display = 'none';
+    bigVideo.style.display = 'block';
+    bigVideo.src = w.src;
+    bigVideo.play().catch(function () {});
+  } else {
+    bigVideo.style.display = 'none'; bigVideo.pause();
+    bigMedia.style.display = 'block';
+    bigMedia.src = w.src;
+  }
+  bigview.classList.add('show');
+}
+document.getElementById('viewBtn').onclick = showBig;
+bigview.onclick = function () {
+  bigview.classList.remove('show');
+  bigVideo.pause();
+};
+
+select(0);
+</script>
+</body>
+</html>
